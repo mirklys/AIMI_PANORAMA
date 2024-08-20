@@ -53,12 +53,13 @@ class PDACDetectionContainer(SegmentationAlgorithm):
         self.nnunet_model_dir = Path("/opt/algorithm/nnunet/results")
        
         # input / output paths
-        self.ct_ip_dir         = Path("/input/images/venous-ct")
-        self.output_dir        = Path("/output")
+        self.ct_ip_dir          = Path("/input/images/venous-ct")
+        self.clinical_info_path = "/input/clinical-information-pancreatic-ct.json"
+        self.output_dir         = Path("/output")
 
-        self.output_dir_images = Path(os.path.join(self.output_dir,"images")) 
-        self.output_dir_tlm    = Path(os.path.join(self.output_dir_images,"pdac-detection-map")) 
-        self.detection_map     = self.output_dir_tlm / "detection_map.mha"
+        self.output_dir_images  = Path(os.path.join(self.output_dir,"images")) 
+        self.output_dir_tlm     = Path(os.path.join(self.output_dir_images,"pdac-detection-map")) 
+        self.detection_map      = self.output_dir_tlm / "detection_map.mha"
 
         # ensure required folders exist
         self.nnunet_input_dir_lowres.mkdir(exist_ok=True, parents=True)
@@ -82,7 +83,15 @@ class PDACDetectionContainer(SegmentationAlgorithm):
         """
         Load CT scan and Generate Heatmap for Pancreas Cancer  
         """
-        itk_img    = sitk.ReadImage(self.ct_image, sitk.sitkFloat32)
+
+        itk_img = sitk.ReadImage(self.ct_image, sitk.sitkFloat32)
+        with open(self.clinical_info_path, 'r') as file:
+            clinical_info = json.load(file)
+        print('Clinical Information:')
+        print('age:', clinical_info['age'])
+        print('sex:',clinical_info['sex'])
+        print('study date:',clinical_info['study_date'])
+        print('scanner:',clinical_info['scanner'])
 
         #Get low resolution pancreas segmentation 
         #dowsample image to (4.5, 4.5, 9.0)
